@@ -42,7 +42,7 @@ export class AuthService {
 		const tokens = await this.issueTokens(user.id)
 
 		return {
-			user: this.getUsersField(user),
+			user: await this.getUsersField(user),
 			...tokens
 		}
 	}

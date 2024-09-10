@@ -10,8 +10,10 @@ import { StatisticsModule } from './statistics/statistics.module';
 import { OrderModule } from './order/order.module';
 import { CategoryModule } from './category/category.module';
 import { ReviewModule } from './review/review.module';
+import { TransactionModule } from './transaction/transaction.module';
+import { YookassaModule } from './yookassa/yookassa.module';
 @Module({
-	imports: [ConfigModule.forRoot(), AuthModule, UserModule, ProductModule, ReviewModule, CategoryModule, OrderModule, StatisticsModule, PaginationModule],
+	imports: [ConfigModule.forRoot(), AuthModule, UserModule, ProductModule, ReviewModule, CategoryModule, OrderModule, StatisticsModule, PaginationModule, TransactionModule, YookassaModule],
 	controllers: [AppController],
 	providers: [AppService]
 })

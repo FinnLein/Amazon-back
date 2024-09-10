@@ -9,9 +9,9 @@ import {
 	ValidationPipe
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
-import { ReviewService } from './review.service'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
 import { ReviewDto } from './dto/review.dto'
+import { ReviewService } from './review.service'
 
 @Controller('reviews')
 export class ReviewController {
@@ -32,5 +32,10 @@ export class ReviewController {
 		@Body() dto: ReviewDto
 	) {
 		return this.reviewService.create(id, +productId, dto)
+	}
+
+	@Post('average-by-product/:productId')
+	async getAverageByProduct(@Param('productId') productId: string) {
+		return this.reviewService.getAverageValueByProductId(+productId)
 	}
 }

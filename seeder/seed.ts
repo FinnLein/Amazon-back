@@ -18,10 +18,10 @@ const createProducts = async (quantity: number) => {
 				name: productName,
 				slug: faker.helpers.slugify(productName).toLowerCase(),
 				description: faker.commerce.productDescription(),
-				price: +faker.commerce.price({ min: 10, max: 999, dec: 0 }),
+				price: +faker.commerce.price({ min: 10, max: 999, dec: 0}),
 				images: Array.from({
 					length: faker.number.int({ min: 2, max: 6 })
-				}).map(() => `/uploads/${faker.number.int({ min: 1, max: 5 })}.jpg`),
+				}).map(() => faker.image.url({width: 500, height: 500})), 
 				category: {
 					create: {
 						name: categoryName,
@@ -35,7 +35,7 @@ const createProducts = async (quantity: number) => {
 							text: faker.lorem.paragraph(),
 							user: {
 								connect: {
-									id: 9
+									id: 1
 								}
 							}
 						},
@@ -44,7 +44,7 @@ const createProducts = async (quantity: number) => {
 							text: faker.lorem.paragraph(),
 							user: {
 								connect: {
-									id: 9
+									id: 1
 								}
 							}
 						}
