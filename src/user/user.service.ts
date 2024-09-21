@@ -13,6 +13,15 @@ import { returnUserObject } from './return-user.object'
 export class UserService {
 	constructor(private prisma: PrismaService) {}
 
+	async getAllUsers() {
+		const users = await this.prisma.user.findMany({
+			select: { ...returnUserObject }
+		})
+
+		if (!users) throw new NotFoundException('There is no users yet')
+		return users
+	}
+
 	async byId(id: number, selectObject: Prisma.UserSelect = {}) {
 		const user = await this.prisma.user.findUnique({
 			where: {

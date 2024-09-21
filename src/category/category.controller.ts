@@ -51,7 +51,6 @@ export class CategoryController {
 	}
 
 	@HttpCode(200)
-	@Auth()
 	@Post()
 	async create() {
 		return this.categoryService.create()

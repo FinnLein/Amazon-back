@@ -9,10 +9,10 @@ import {
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
-import { UserService } from './user.service'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
 import { UserDto } from './dto/user.dto'
+import { UserService } from './user.service'
 
 @Controller('users')
 export class UserController {
@@ -22,6 +22,12 @@ export class UserController {
 	@Auth()
 	async getProfile(@CurrentUser('id') id: number) {
 		return this.userService.byId(id)
+	}
+
+	@Auth()
+	@Get()
+	async getAllUsers(){
+		return this.userService.getAllUsers()
 	}
 
 	@UsePipes(new ValidationPipe())

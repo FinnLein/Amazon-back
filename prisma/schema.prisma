@@ -15,10 +15,10 @@ model User {
   email    String @unique
   password String
 
-  name       String @unique
-  avatarPath String @default("/uploads/default-avatar.png") @map("avatar_path")
-
-  phone String @default("")
+  name       String   @unique
+  avatarPath String   @default("/uploads/default-avatar.png") @map("avatar_path")
+  role       EnumRole @default(USER)
+  phone      String   @default("")
 
   orders    Order[]
   reviews   Review[]
@@ -110,8 +110,9 @@ enum EnumOrderStatus {
   PAYED
   SHIPPED
   DELIVERED
-  waiting_for_capture
-  succeeded
-  canceled
-  refunded
+}
+
+enum EnumRole {
+  ADMIN
+  USER
 }
