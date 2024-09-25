@@ -74,6 +74,8 @@ export class ProductService {
 		}
 	}
 
+	// Admin
+
 	async byId(id: number) {
 		const product = await this.prisma.product.findUnique({
 			where: { id },

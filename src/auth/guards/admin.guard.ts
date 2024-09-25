@@ -8,7 +8,7 @@ export class OnlyAdminGuard implements CanActivate {
 		const user = request.user as User
 
 		if (user.role !== EnumRole.ADMIN) {
-			throw new ForbiddenException('У тебя нет прав!')
+			throw new ForbiddenException(`You have no rights, ${user.role}! You need to be ADMIN`)
 		}
 
 		return true

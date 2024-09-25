@@ -6,7 +6,6 @@ import {
 	Param,
 	Post,
 	UsePipes,
-	ValidationPipe
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
@@ -22,7 +21,6 @@ export class ReviewController {
 		return this.reviewService.getAll()
 	}
 
-	@UsePipes(new ValidationPipe())
 	@Auth()
 	@Post('leave/:productId')
 	@HttpCode(200)

@@ -3,15 +3,13 @@ import {
 	Controller,
 	Get,
 	HttpCode,
-	Post,
-	UsePipes,
-	ValidationPipe
+	Post
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
 import { OrderDto } from './dto/order.dto'
-import { OrderService } from './order.service'
 import { PaymentStatusDto } from './dto/payment-status.dto'
+import { OrderService } from './order.service'
 
 @Controller('orders')
 export class OrderController {
@@ -23,7 +21,6 @@ export class OrderController {
 		return this.orderService.getAll(userId)
 	}
 
-	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Post()
 	@Auth()

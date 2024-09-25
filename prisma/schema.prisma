@@ -25,6 +25,15 @@ model User {
   favorites Product[]
 }
 
+model Setting {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Product {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now()) @map("created_at")
@@ -78,8 +87,6 @@ model Order {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   status        EnumOrderStatus @default(PENDING)
-  paymentId     String          @unique @map("payment_id")
-  paymentMethod String?         @map("payment_method")
 
   items OrderItem[]
   total Int

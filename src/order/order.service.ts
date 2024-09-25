@@ -42,7 +42,6 @@ export class OrderService {
 
 		const order = await this.prisma.order.create({
 			data: {
-				paymentId: '',
 				status: dto.status,
 				items: {
 					create: dto.items
@@ -61,7 +60,6 @@ export class OrderService {
 				value: total.toFixed(2),
 				currency: CurrencyEnum.RUB
 			},
-			capture: true,
 			payment_method_data: {
 				type: PaymentMethodsEnum.bank_card
 			},

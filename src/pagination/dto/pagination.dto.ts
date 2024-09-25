@@ -9,3 +9,19 @@ export class PaginationDto {
 	@IsOptional()
 	perPage?: string
 }
+
+export class PaginationArgs {
+	@IsOptional()
+	@IsString()
+	skip?: string
+
+	@IsOptional()
+	@IsString()
+	take?: string
+}
+
+export class PaginationArgsWithSearchTerm extends PaginationArgs {
+	@IsOptional()
+	@IsString()
+	searchTerm?: string
+}

@@ -5,23 +5,91 @@ import {
 } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { hash } from 'argon2'
+import { PaginationArgsWithSearchTerm } from 'src/pagination/dto/pagination.dto'
+import { isHasMorePagination } from 'src/pagination/is-has-more'
 import { PrismaService } from 'src/prisma.service'
-import { UserDto } from './dto/user.dto'
+import { CreateUserDto, UpdateUserDto } from './dto/createUser.dto'
 import { returnUserObject } from './return-user.object'
+import { UserResponse } from './user.response'
 
 @Injectable()
 export class UserService {
 	constructor(private prisma: PrismaService) {}
 
-	async getAllUsers() {
+	async getAllUsers(
+		args?: PaginationArgsWithSearchTerm
+	): Promise<UserResponse> {
+		const searchTermQuery = args?.searchTerm
+			? this.getSearchTermFilter(args?.searchTerm)
+			: {}
+
 		const users = await this.prisma.user.findMany({
-			select: { ...returnUserObject }
+			skip: +args?.skip,
+			take: +args?.take,
+			where: searchTermQuery
 		})
 
 		if (!users) throw new NotFoundException('There is no users yet')
-		return users
+
+		const totalCount = await this.prisma.user.count({
+			where: searchTermQuery
+		})
+
+		const isHasMore = isHasMorePagination(totalCount, +args?.skip, +args?.take)
+
+		return { items: users, isHasMore, totalCount}
 	}
 
+	private getSearchTermFilter(searchTerm: string): Prisma.UserWhereInput {
+		return {
+			OR: [
+				{
+					email: {
+						contains: searchTerm,
+						mode: 'insensitive'
+					}
+				},
+				{
+					name: {
+						contains: searchTerm,
+						mode: 'insensitive'
+					}
+				}
+			]
+		}
+	}
+	async findByEmail(email: string) {
+		const user = await this.prisma.user.findUnique({
+			where: {
+				email
+			}
+		})
+
+		return user
+	}
+	async toggleFavorites(id: number, productId: number) {
+		const user = await this.byId(id)
+
+		if (!user) throw new NotFoundException('Not found user')
+
+		const isExists = user.favorites.some(product => product.id === productId)
+
+		await this.prisma.user.update({
+			where: {
+				id: user.id
+			},
+			data: {
+				favorites: {
+					[isExists ? 'disconnect' : 'connect']: {
+						id: productId
+					}
+				}
+			}
+		})
+
+		return { message: 'Success' }
+	}
+	// Admin
 	async byId(id: number, selectObject: Prisma.UserSelect = {}) {
 		const user = await this.prisma.user.findUnique({
 			where: {
@@ -52,14 +120,21 @@ export class UserService {
 
 		return user
 	}
+	async create({ password, ...dto }: CreateUserDto) {
+		const user = {
+			...dto,
+			password: await hash(password)
+		}
 
-	async update(id: number, dto: UserDto) {
-		const isSameUser = await this.prisma.user.findUnique({
-			where: { email: dto.email }
+		return this.prisma.user.create({
+			data: user
 		})
+	}
+	async update(id: number, { password, ...dto }: UpdateUserDto) {
+		const isSameUser = await this.findByEmail(dto.email)
 
 		if (isSameUser && id !== isSameUser.id)
-			throw new BadRequestException('Email alreadt exist')
+			throw new BadRequestException('Email already exist')
 
 		const user = await this.byId(id)
 
@@ -68,33 +143,14 @@ export class UserService {
 			data: {
 				email: dto.email,
 				name: dto.name,
-				avatarPath: dto.avatarPath,
+				avatarPath: dto.avatarUrl,
 				phone: dto.phone,
-				password: dto.password ? await hash(dto.password) : user.password
+				password: password ? await hash(password) : user.password,
+				role: dto.role
 			}
 		})
 	}
-
-	async toggleFavorites(id: number, productId: number) {
-		const user = await this.byId(id)
-
-		if (!user) throw new NotFoundException('Not found user')
-
-		const isExists = user.favorites.some(product => product.id === productId)
-
-		await this.prisma.user.update({
-			where: {
-				id: user.id
-			},
-			data: {
-				favorites: {
-					[isExists ? 'disconnect' : 'connect']: {
-						id: productId
-					}
-				}
-			}
-		})
-
-		return { message: 'Success' }
+	async delete(id: number) {
+		return this.prisma.user.delete({ where: { id } })
 	}
 }

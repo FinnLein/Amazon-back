@@ -10,9 +10,13 @@ import { ReviewModule } from './review/review.module'
 import { StatisticsModule } from './statistics/statistics.module'
 import { UserModule } from './user/user.module'
 import { YookassaModule } from './yookassa/yookassa.module'
+import { SettingsModule } from './settings/settings.module';
+import { EmailModule } from './email/email.module';
 @Module({
 	imports: [
-		ConfigModule.forRoot(),
+		ConfigModule.forRoot({
+			isGlobal: true	
+		}),
 		AuthModule,
 		UserModule,
 		ProductModule,
@@ -21,7 +25,9 @@ import { YookassaModule } from './yookassa/yookassa.module'
 		OrderModule,
 		StatisticsModule,
 		PaginationModule,
-		YookassaModule
+		YookassaModule,
+		SettingsModule,
+		EmailModule
 	]
 })
 export class AppModule {}

@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { PrismaClient, Product } from '@prisma/client'
+import { hash } from 'argon2'
 import * as dotenv from 'dotenv'
 
 dotenv.config()
@@ -14,7 +15,7 @@ const createProducts = async (quantity: number) => {
 		const categoryName = faker.commerce.department()
 
 		const product = await prisma.product.create({
-			data: { 
+			data: {
 				name: productName,
 				slug: faker.helpers.slugify(productName).toLowerCase(),
 				description: faker.commerce.productDescription(),
@@ -57,10 +58,37 @@ const createProducts = async (quantity: number) => {
 	}
 	console.log(`Created ${products.length} products`)
 }
+const createUsers = async (quantity: number) => {
+	for (let i = 0; i < quantity; i++) {
+		const email = faker.internet.email()
+		const name = faker.person.firstName()
+		const avatarPath = faker.image.avatar()
+		const password = await hash('123456')
+		const createdAt = faker.date.past({ years: 1 })
+		const phone = faker.phone.number('+7 (###) ###-##-##')
+
+		const updatedAt = new Date(
+			createdAt.getTime() +
+				Math.random() * (new Date().getTime() - createdAt.getTime())
+		)
+
+		await prisma.user.create({
+			data: {
+				email,
+				name,
+				avatarPath,
+				password,
+				createdAt,
+				updatedAt,
+				phone
+			}
+		})
+	}
+}
 
 async function main() {
 	console.log('Start seeding')
-	await createProducts(10)
+	await createUsers(50)
 }
 
 main()

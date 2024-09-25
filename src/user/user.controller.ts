@@ -1,17 +1,19 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	HttpCode,
 	Param,
 	Patch,
+	Post,
 	Put,
-	UsePipes,
-	ValidationPipe
+	Query
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
-import { UserDto } from './dto/user.dto'
+import { PaginationArgsWithSearchTerm } from 'src/pagination/dto/pagination.dto'
+import { CreateUserDto, UpdateUserDto } from './dto/createUser.dto'
 import { UserService } from './user.service'
 
 @Controller('users')
@@ -24,17 +26,13 @@ export class UserController {
 		return this.userService.byId(id)
 	}
 
-	@Auth()
-	@Get()
-	async getAllUsers(){
-		return this.userService.getAllUsers()
-	}
-
-	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Put('profile')
 	@Auth()
-	async updateProfile(@CurrentUser('id') id: number, @Body() dto: UserDto) {
+	async updateProfile(
+		@CurrentUser('id') id: number,
+		@Body() dto: UpdateUserDto
+	) {
 		return this.userService.update(id, dto)
 	}
 
@@ -46,5 +44,34 @@ export class UserController {
 		@Param('productId') productId: string
 	) {
 		return this.userService.toggleFavorites(id, +productId)
+	}
+
+	// Admin
+
+	@Auth('ADMIN')
+	@Get()
+	async getAllUsers(@Query() params: PaginationArgsWithSearchTerm) {
+		return this.userService.getAllUsers(params)
+	}
+
+	@Auth('ADMIN')
+	@Get(':id')
+	async getById(@Param('id') id: string) {
+		return this.userService.byId(+id)
+	}
+	@Auth('ADMIN')
+	@Post()
+	async create(@Body() dto: CreateUserDto) {
+		return this.userService.create(dto)
+	}
+	@Auth('ADMIN')
+	@Put(':id')
+	async update(@Body() dto: CreateUserDto, @Param('id') id: string) {
+		return this.userService.update(+id, dto)
+	}
+	@Auth('ADMIN')
+	@Delete(':id')
+	async delete(@Param('id') id: string) {
+		return this.userService.delete(+id)
 	}
 }

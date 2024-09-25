@@ -1,14 +1,12 @@
 import {
-  Body,
+	Body,
 	Controller,
 	Delete,
 	Get,
 	HttpCode,
 	Param,
 	Post,
-	Put,
-	UsePipes,
-	ValidationPipe
+	Put
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CategoryService } from './category.service'
@@ -28,31 +26,32 @@ export class CategoryController {
 		return this.categoryService.bySlug(slug)
 	}
 
+	// Admin
+
 	@Get(':id')
-	@Auth()
+	@Auth('ADMIN')
 	async byId(@Param('id') id: string) {
 		return this.categoryService.byId(+id)
 	}
 
-	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
-	@Auth()
+	@Auth('ADMIN')
+	@Post()
+	async create() {
+		return this.categoryService.create()
+	}
+
+	@HttpCode(200)
+	@Auth('ADMIN')
 	@Put(':id')
 	async update(@Param('id') id: string, @Body() dto: CategoryDto) {
 		return this.categoryService.update(+id, dto)
 	}
 
-	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
-	@Auth()
+	@Auth('ADMIN')
 	@Delete(':id')
 	async delete(@Param('id') id: string) {
 		return this.categoryService.delete(+id)
-	}
-
-	@HttpCode(200)
-	@Post()
-	async create() {
-		return this.categoryService.create()
 	}
 }
