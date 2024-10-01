@@ -94,6 +94,20 @@ export class OrderService {
 
 			return true
 		}
+		if (dto.event === 'payment.canceled') {
+			const orderId = Number(dto.object.description.split('#')[1])
+
+			await this.prisma.order.update({
+				where: {
+					id: orderId
+				},
+				data: {
+					status: EnumOrderStatus.PENDING
+				}
+			})
+
+			return true
+		}
 
 		return true
 	}

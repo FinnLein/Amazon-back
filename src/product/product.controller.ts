@@ -10,16 +10,16 @@ import {
 	Query
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
-import { GetAllProductDto } from './dto/get-all-product.dto'
 import { ProductDto } from './dto/product.dto'
 import { ProductService } from './product.service'
+import { PaginationArgsWithSearchTermAndSort } from 'src/pagination/dto/pagination.dto'
 
 @Controller('products')
 export class ProductController {
 	constructor(private readonly productService: ProductService) {}
 
 	@Get()
-	async getAll(@Query() query: GetAllProductDto) {
+	async getAll(@Query() query: PaginationArgsWithSearchTermAndSort) {
 		return this.productService.getAll(query)
 	}
 

@@ -18,6 +18,21 @@ export class StatisticsController {
 	async getBestSellingProduct(){
 		return this.statisticsService.getBestSellingProduct()
 	}
+	@Auth()
+	@Get('/most-unsold-products')
+	async getMostUnsoldProduct(){
+		return this.statisticsService.getMostUnsoldProduct()
+	}
+	@Auth()
+	@Get('/most-expensive-products')
+	async getMostExpensiveProducts(){
+		return this.statisticsService.getMostExpensiveProducts()
+	}
+	@Auth()
+	@Get('/most-chippiest-products')
+	async getMostChippiesProducts(){
+		return this.statisticsService.getMostChippiesProducts()
+	}
 
 	@Auth()
 	@Get('/users-count')

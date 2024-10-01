@@ -8,7 +8,9 @@ import {
 	Patch,
 	Post,
 	Put,
-	Query
+	Query,
+	UsePipes,
+	ValidationPipe
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
@@ -66,7 +68,8 @@ export class UserController {
 	}
 	@Auth('ADMIN')
 	@Put(':id')
-	async update(@Body() dto: CreateUserDto, @Param('id') id: string) {
+	@UsePipes(new ValidationPipe())
+	async update(@Body() dto: UpdateUserDto, @Param('id') id: string) {
 		return this.userService.update(+id, dto)
 	}
 	@Auth('ADMIN')

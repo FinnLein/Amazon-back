@@ -1,4 +1,3 @@
-import { faker } from '@faker-js/faker'
 import {
 	BadRequestException,
 	Injectable,
@@ -9,9 +8,10 @@ import { JwtService } from '@nestjs/jwt'
 import { EnumRole, User } from '@prisma/client'
 import { hash, verify } from 'argon2'
 import { Response } from 'express'
+import { EmailService } from 'src/email/email.service'
 import { PrismaService } from 'src/prisma.service'
 import { UserService } from 'src/user/user.service'
-import { AuthDto } from './dto/auth.dto'
+import { LoginDto, RegisterDto } from './dto/auth.dto'
 
 @Injectable()
 export class AuthService {
@@ -21,10 +21,11 @@ export class AuthService {
 	constructor(
 		private prisma: PrismaService,
 		private jwt: JwtService,
-		private userService: UserService
+		private userService: UserService,
+		private emailService: EmailService
 	) {}
 
-	async register(dto: AuthDto) {
+	async register(dto: RegisterDto) {
 		const oldUser = await this.userService.findByEmail(dto.email)
 
 		if (oldUser) throw new BadRequestException('This user already exist')
@@ -32,21 +33,23 @@ export class AuthService {
 		const user = await this.prisma.user.create({
 			data: {
 				email: dto.email,
-				name: faker.person.firstName(),
-				avatarPath: faker.image.avatar(),
-				phone: faker.phone.number('+7 (###) ###-##-##'),
+				name: dto.name,
+				avatarPath: '/uploads/default-avatar.png',
+				phone: dto.phone,
 				password: await hash(dto.password)
 			}
 		})
 
 		const tokens = await this.issueTokens(user.id)
 
+		// await this.emailService.sendWelcome(user.email)
+
 		return {
 			user: await this.getUsersField(user),
 			...tokens
 		}
 	}
-	async login(dto: AuthDto) {
+	async login(dto: LoginDto) {
 		const user = await this.validateUser(dto)
 		const tokens = await this.issueTokens(user.id, user.role)
 
@@ -58,7 +61,7 @@ export class AuthService {
 
 		const user = await this.userService.byId(result.id)
 
-		const tokens = await this.issueTokens(user.id)
+		const tokens = await this.issueTokens(user.id, user.role)
 
 		return {
 			...tokens,
@@ -69,11 +72,11 @@ export class AuthService {
 		const data = { id: userId, role }
 
 		const accessToken = this.jwt.sign(data, {
-			expiresIn: '1h'
+			expiresIn: '24h'
 		})
 
 		const refreshToken = this.jwt.sign(data, {
-			expiresIn: '7d'
+			expiresIn: '30d'
 		})
 
 		return { accessToken, refreshToken }
@@ -88,22 +91,24 @@ export class AuthService {
 			expires: expiresIn,
 			// true if production
 			secure: true,
-			// lax if prod
-			sameSite: true
+			// lax if production
+			sameSite: 'none'
 		})
+
+		return res
 	}
-	removeRefreshTokenToResponse(res: Response) {
+	removeRefreshTokenFromResponse(res: Response) {
 		res.cookie(this.REFRESH_TOKEN, '', {
 			httpOnly: true,
 			domain: 'localhost',
 			expires: new Date(0),
 			// true if production
 			secure: true,
-			// lax if prod
-			sameSite: true
+			// lax if production
+			sameSite: 'none'
 		})
 	}
-	private async validateUser(dto: AuthDto) {
+	private async validateUser(dto: LoginDto) {
 		const user = await this.userService.findByEmail(dto.email)
 
 		if (!user) throw new NotFoundException('User is not found')

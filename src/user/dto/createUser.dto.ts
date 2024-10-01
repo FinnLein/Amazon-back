@@ -1,10 +1,10 @@
 import { EnumRole } from '@prisma/client'
 import {
-    IsEmail,
-    IsEnum,
-    IsOptional,
-    IsString,
-    MinLength
+	IsEmail,
+	IsEnum,
+	IsOptional,
+	IsString,
+	MinLength
 } from 'class-validator'
 
 export class CreateUserDto {
@@ -16,10 +16,10 @@ export class CreateUserDto {
 
 	@IsString()
 	@IsOptional()
-	avatarUrl?: string
+	avatarPath?: string
 
-    @IsOptional()
-    @IsString()
+	@IsOptional()
+	@IsString()
 	phone?: string
 
 	@IsEnum(EnumRole)
@@ -33,4 +33,4 @@ export class CreateUserDto {
 	password: string
 }
 
-export type UpdateUserDto = Partial<CreateUserDto>
+export type UpdateUserDto = Partial<Omit<CreateUserDto, 'password'>>

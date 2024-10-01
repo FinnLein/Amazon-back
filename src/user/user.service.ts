@@ -130,22 +130,20 @@ export class UserService {
 			data: user
 		})
 	}
-	async update(id: number, { password, ...dto }: UpdateUserDto) {
+	async update(id: number, {  ...dto }: UpdateUserDto) {
 		const isSameUser = await this.findByEmail(dto.email)
 
 		if (isSameUser && id !== isSameUser.id)
 			throw new BadRequestException('Email already exist')
 
-		const user = await this.byId(id)
 
 		return this.prisma.user.update({
 			where: { id },
 			data: {
 				email: dto.email,
 				name: dto.name,
-				avatarPath: dto.avatarUrl,
+				avatarPath: dto.avatarPath,
 				phone: dto.phone,
-				password: password ? await hash(password) : user.password,
 				role: dto.role
 			}
 		})

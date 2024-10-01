@@ -1,21 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { PaginationService } from 'src/pagination/pagination.service'
+import { PaginationArgsWithSearchTermAndSort } from 'src/pagination/dto/pagination.dto'
+import { isHasMorePagination } from 'src/pagination/is-has-more'
 import { PrismaService } from 'src/prisma.service'
 import { generateSlug } from 'src/utils/generate-slug'
-import { EnumProductSort, GetAllProductDto } from './dto/get-all-product.dto'
+import { EnumProductSort } from './dto/get-all-product.dto'
 import { ProductDto } from './dto/product.dto'
-import { productReturnObjectFullest, returnProductObject } from './return-product.object'
+import { ProductResponse } from './product.response'
+import {
+	productReturnObjectFullest,
+	returnProductObject
+} from './return-product.object'
 
 @Injectable()
 export class ProductService {
 	constructor(
 		private prisma: PrismaService,
-		private paginationService: PaginationService
 	) {}
 
-	async getAll(dto: GetAllProductDto = {}) {
-		const { sort, searchTerm } = dto
+	async getAll(
+		args?: PaginationArgsWithSearchTermAndSort
+	): Promise<ProductResponse> {
+		const { sort, searchTerm, skip, take } = args
 
 		const prismaSort: Prisma.ProductOrderByWithRelationInput[] = []
 
@@ -29,48 +35,52 @@ export class ProductService {
 			prismaSort.push({ createdAt: 'desc' })
 		}
 
-		const prismaSearchTermFilter: Prisma.ProductWhereInput = searchTerm
-			? {
-					OR: [
-						{
-							category: {
-								name: {
-									contains: searchTerm,
-									mode: 'insensitive'
-								}
-							}
-						},
-						{
-							name: {
-								contains: searchTerm,
-								mode: 'insensitive'
-							}
-						},
-						{
-							description: {
-								contains: searchTerm,
-								mode: 'insensitive'
-							}
-						}
-					]
-				}
+		const searchTermQuery = searchTerm
+			? this.getSearchTermFilter(searchTerm)
 			: {}
 
-		const { skip, perPage } = this.paginationService.getPagination(dto)
-
 		const products = await this.prisma.product.findMany({
-			where: prismaSearchTermFilter,
-			orderBy: prismaSort,
-			skip,
-			take: perPage, 
-			select: returnProductObject
+			where: searchTermQuery,
+			skip: +skip,
+			take: +take,
+			select: returnProductObject,
+			orderBy: prismaSort
 		})
 
+		if (!products) throw new NotFoundException('There is no products yet')
+
+		const totalCount = await this.prisma.product.count({
+			where: searchTermQuery
+		})
+
+		const isHasMore = isHasMorePagination(totalCount, +skip, +take)
+
+		return { items: products, isHasMore, totalCount }
+	}
+	private getSearchTermFilter(searchTerm: string): Prisma.ProductWhereInput {
 		return {
-			products,
-			length: await this.prisma.product.count({
-				where: prismaSearchTermFilter
-			})
+			OR: [
+				{
+					category: {
+						name: {
+							contains: searchTerm,
+							mode: 'insensitive'
+						}
+					}
+				},
+				{
+					name: {
+						contains: searchTerm,
+						mode: 'insensitive'
+					}
+				},
+				{
+					description: {
+						contains: searchTerm,
+						mode: 'insensitive'
+					}
+				}
+			]
 		}
 	}
 

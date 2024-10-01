@@ -117,6 +117,7 @@ enum EnumOrderStatus {
   PAYED
   SHIPPED
   DELIVERED
+  CANCELED
 }
 
 enum EnumRole {

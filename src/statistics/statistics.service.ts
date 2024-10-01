@@ -49,7 +49,7 @@ export class StatisticsService {
 		]
 	}
 	async getBestSellingProduct() {
-		const bestSellingProducts = await this.prisma.orderItem.groupBy({
+		const result = await this.prisma.orderItem.groupBy({
 			by: ['productId'],
 			_sum: {
 				quantity: true
@@ -62,7 +62,7 @@ export class StatisticsService {
 			take: 10
 		})
 
-		const productsIds = bestSellingProducts.map(item => item.productId)
+		const productsIds = result.map(item => item.productId)
 
 		const products = await this.prisma.product.findMany({
 			where: {
@@ -72,7 +72,7 @@ export class StatisticsService {
 			}
 		})
 
-		const bestSellers = bestSellingProducts.map(item => {
+		const bestSellers = result.map(item => {
 			const product = products.find(p => p.id === item.productId)
 			return {
 				productId: item.productId,
@@ -85,6 +85,84 @@ export class StatisticsService {
 		})
 
 		return bestSellers
+	}
+	async getMostUnsoldProduct() {
+		const result = await this.prisma.orderItem.groupBy({
+			by: ['productId'],
+			_sum: {
+				quantity: true
+			},
+			orderBy: {
+				_sum: {
+					quantity: 'asc'
+				}
+			},
+			take: 10
+		})
+
+		const productsIds = result.map(item => item.productId)
+
+		const products = await this.prisma.product.findMany({
+			where: {
+				id: {
+					in: productsIds
+				}
+			}
+		})
+
+		const mostUnsoldProduct = result.map(item => {
+			const product = products.find(p => p.id === item.productId)
+			return {
+				productId: item.productId,
+				name: product.name,
+				slug: product.slug,
+				productPrice: product.price,
+				totalQuantitySold: item._sum.quantity,
+				totalPriceSold: item._sum.quantity * product.price
+			}
+		})
+
+		return mostUnsoldProduct
+	}
+	async getMostExpensiveProducts() {
+		const result = await this.prisma.product.findMany({
+			orderBy: {
+				price: 'desc'
+			},
+			take: 5
+		})
+
+		const mostExpensiveProducts = result.map(i => {
+			return {
+				id: i.id,
+				images: i.images,
+				name: i.name,
+				slug: i.slug,
+				price: i.price
+			}
+		})
+
+		return mostExpensiveProducts
+	}
+	async getMostChippiesProducts() {
+		const result = await this.prisma.product.findMany({
+			orderBy: {
+				price: 'asc'
+			},
+			take: 5
+		})
+
+		const mostChippiesProducts = result.map(p => {
+			return {
+				id: p.id,
+				images: p.images,
+				name: p.name,
+				slug: p.slug,
+				price: p.price
+			}
+		})
+
+		return mostChippiesProducts
 	}
 	async getUsersCount() {
 		const usersCount = await this.prisma.user.count()
