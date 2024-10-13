@@ -26,7 +26,8 @@ const createProducts = async (quantity: number) => {
 				category: {
 					create: {
 						name: categoryName,
-						slug: faker.helpers.slugify(categoryName).toLowerCase()
+						slug: faker.helpers.slugify(categoryName).toLowerCase(),
+						description: faker.commerce.productDescription()
 					}
 				},
 				reviews: {
@@ -88,7 +89,7 @@ const createUsers = async (quantity: number) => {
 
 async function main() {
 	console.log('Start seeding')
-	await createProducts(50)
+	await createUsers(20)
 }
 
 main()

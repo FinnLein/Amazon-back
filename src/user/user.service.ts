@@ -3,14 +3,22 @@ import {
 	Injectable,
 	NotFoundException
 } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { Prisma, User } from '@prisma/client'
 import { hash } from 'argon2'
+import {
+	IGithubProfile,
+	IGoogleProfile
+} from 'src/auth/social-media/social-media.types'
 import { PaginationArgsWithSearchTerm } from 'src/pagination/dto/pagination.dto'
 import { isHasMorePagination } from 'src/pagination/is-has-more'
+import { PaginationResponse } from 'src/pagination/pagination-response'
 import { PrismaService } from 'src/prisma.service'
-import { CreateUserDto, UpdateUserDto } from './dto/createUser.dto'
+import {
+	CreateUserDto,
+	UpdateProfileDto,
+	UpdateUserDto
+} from './dto/createUser.dto'
 import { returnUserObject } from './return-user.object'
-import { UserResponse } from './user.response'
 
 @Injectable()
 export class UserService {
@@ -18,7 +26,7 @@ export class UserService {
 
 	async getAllUsers(
 		args?: PaginationArgsWithSearchTerm
-	): Promise<UserResponse> {
+	): Promise<PaginationResponse<User>> {
 		const searchTermQuery = args?.searchTerm
 			? this.getSearchTermFilter(args?.searchTerm)
 			: {}
@@ -37,9 +45,8 @@ export class UserService {
 
 		const isHasMore = isHasMorePagination(totalCount, +args?.skip, +args?.take)
 
-		return { items: users, isHasMore, totalCount}
+		return { items: users, isHasMore, totalCount }
 	}
-
 	private getSearchTermFilter(searchTerm: string): Prisma.UserWhereInput {
 		return {
 			OR: [
@@ -65,6 +72,8 @@ export class UserService {
 			}
 		})
 
+		if (!user) throw new NotFoundException('User with this email doesnt exist')
+
 		return user
 	}
 	async toggleFavorites(id: number, productId: number) {
@@ -89,6 +98,58 @@ export class UserService {
 
 		return { message: 'Success' }
 	}
+	async updateProfile(id: number, dto: UpdateProfileDto) {
+		return this.prisma.user.update({
+			where: { id },
+			data: {
+				email: dto.email,
+				name: dto.name,
+				avatarPath: dto.avatarPath,
+				phone: dto.phone,
+				password: await hash(dto.password)
+			}
+		})
+	}
+	async updateProfileAvatar(id: number, dto: UpdateProfileDto) {
+		return this.prisma.user.update({
+			where: { id },
+			data: {
+				avatarPath: dto.avatarPath
+			}
+		})
+	}
+
+	async findOrCreateBySocial(profile: IGoogleProfile | IGithubProfile) {
+		let user = await this.findByEmail(profile.email)
+
+		if (!user) {
+			user = await this._createBySocial(profile)
+		}
+
+		return user
+	}
+
+	async _createBySocial(
+		profile: IGoogleProfile | IGithubProfile
+	): Promise<User> {
+		const email = profile.email
+		const picture = profile.picture || ''
+		const name =
+			'firstName' in profile
+				? `${profile.firstName} ${profile.lastName}`
+				: profile.username
+
+		return this.prisma.user.create({
+			data: {
+				email,
+				avatarPath: picture,
+				name,
+				password: '',
+				verificationToken: null
+			}
+		})
+	}
+
 	// Admin
 	async byId(id: number, selectObject: Prisma.UserSelect = {}) {
 		const user = await this.prisma.user.findUnique({
@@ -130,12 +191,11 @@ export class UserService {
 			data: user
 		})
 	}
-	async update(id: number, {  ...dto }: UpdateUserDto) {
-		const isSameUser = await this.findByEmail(dto.email)
+	async update(id: number, dto: UpdateUserDto) {
+		const isSameUser = await this.byId(id)
 
 		if (isSameUser && id !== isSameUser.id)
 			throw new BadRequestException('Email already exist')
-
 
 		return this.prisma.user.update({
 			where: { id },

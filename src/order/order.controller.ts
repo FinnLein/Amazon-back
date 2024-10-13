@@ -1,8 +1,10 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	HttpCode,
+	Param,
 	Post
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
@@ -21,6 +23,12 @@ export class OrderController {
 		return this.orderService.getAll(userId)
 	}
 
+	@Get('get-last')
+	@Auth()
+	getLast(@CurrentUser('id') userId: number) {
+		return this.orderService.getLast(userId)
+	}
+
 	@HttpCode(200)
 	@Post()
 	@Auth()
@@ -32,5 +40,12 @@ export class OrderController {
 	@Post('status')
 	updateStatus(@Body() dto: PaymentStatusDto) {
 		return this.orderService.updateStatus(dto)
+	}
+
+	@Auth('ADMIN')
+	@HttpCode(200)
+	@Delete(':id')
+	async delete(@Param('id') id: string) {
+		return this.orderService.delete(+id)
 	}
 }

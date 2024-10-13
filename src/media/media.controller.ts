@@ -19,7 +19,7 @@ export class MediaController {
 
 	@HttpCode(200)
 	@Post()
-	@UseInterceptors(FilesInterceptor('media'))
+	@UseInterceptors(FilesInterceptor('media', 5))
 	@UsePipes(new FolderValidationPipe())
 	async uploadMediaFile(
 		@UploadedFiles(FileValidationPipe) mediaFiles: IFile | IFile[],

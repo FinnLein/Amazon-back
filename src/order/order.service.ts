@@ -35,6 +35,26 @@ export class OrderService {
 			}
 		})
 	}
+	async getLast(userId: number) {
+		return this.prisma.order.findMany({
+			where: {
+				userId
+			},
+			take: 3,
+			orderBy: {
+				createdAt: 'desc'
+			},
+			include: {
+				items: {
+					include: {	
+						product: {
+							select: returnProductObject
+						}
+					}
+				}
+			}
+		})
+	}
 	async placeOrder(dto: OrderDto, userId: number) {
 		const total = dto.items.reduce((acc, item) => {
 			return acc + item.price * item.quantity
@@ -77,7 +97,10 @@ export class OrderService {
 
 	async updateStatus(dto: PaymentStatusDto) {
 		if (dto.event === 'payment.waiting_for_capture') {
-			const payment = await yooKassa.capturePayment(dto.object.id, dto.object.amount)
+			const payment = await yooKassa.capturePayment(
+				dto.object.id,
+				dto.object.amount
+			)
 			return payment
 		}
 		if (dto.event === 'payment.succeeded') {
@@ -110,5 +133,13 @@ export class OrderService {
 		}
 
 		return true
+	}
+
+	async delete(id: number) {
+		return this.prisma.order.delete({
+			where: {
+				id
+			}
+		})
 	}
 }

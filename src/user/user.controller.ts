@@ -22,12 +22,17 @@ import { UserService } from './user.service'
 export class UserController {
 	constructor(private readonly userService: UserService) {}
 
+	@Get(':email')
+	@Auth()
+	async getByEmail(@Param('email') email: string) {
+		return this.userService.findByEmail(email)
+	}
+
 	@Get('profile')
 	@Auth()
 	async getProfile(@CurrentUser('id') id: number) {
 		return this.userService.byId(id)
 	}
-
 	@HttpCode(200)
 	@Put('profile')
 	@Auth()
@@ -35,7 +40,17 @@ export class UserController {
 		@CurrentUser('id') id: number,
 		@Body() dto: UpdateUserDto
 	) {
-		return this.userService.update(id, dto)
+		return this.userService.updateProfile(id, dto)
+	}
+
+	@HttpCode(200)
+	@Patch('profile-avatar')
+	@Auth()
+	async updateProfileAvatar(
+		@CurrentUser('id') id: number,
+		@Body() dto: UpdateUserDto
+	) {
+		return this.userService.updateProfileAvatar(id, dto)
 	}
 
 	@HttpCode(200)
@@ -47,6 +62,7 @@ export class UserController {
 	) {
 		return this.userService.toggleFavorites(id, +productId)
 	}
+
 
 	// Admin
 

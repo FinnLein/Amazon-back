@@ -34,3 +34,5 @@ export class CreateUserDto {
 }
 
 export type UpdateUserDto = Partial<Omit<CreateUserDto, 'password'>>
+
+export type UpdateProfileDto = Partial<Omit<CreateUserDto, 'role'>>

@@ -1,6 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { Category } from '@prisma/client'
+import { PaginationArgsWithSearchTerm } from 'src/pagination/dto/pagination.dto'
+import { isHasMorePagination } from 'src/pagination/is-has-more'
+import { PaginationResponse } from 'src/pagination/pagination-response'
 import { PrismaService } from 'src/prisma.service'
 import { generateSlug } from 'src/utils/generate-slug'
+import { Prisma } from './../../node_modules/.prisma/client/index.d'
 import { CategoryDto } from './dto/category.dto'
 import { returnCategoryObject } from './return-category.object'
 
@@ -10,11 +15,10 @@ export class CategoryService {
 
 	async byId(id: number) {
 		const category = await this.prisma.category.findUnique({
-			where: { id },
-			select: returnCategoryObject
+			where: { id }
 		})
 
-		if (!category) throw new NotFoundException('Categoty not found')
+		if (!category) throw new NotFoundException('Category not found')
 
 		return category
 	}
@@ -30,8 +34,45 @@ export class CategoryService {
 		return category
 	}
 
-	async getAll() {
-		return this.prisma.category.findMany({ select: returnCategoryObject })
+	async getAll(
+		args?: PaginationArgsWithSearchTerm
+	): Promise<PaginationResponse<Category>> {
+		const searchTerm = args?.searchTerm
+			? this.getSearchTermFilter(args?.searchTerm)
+			: {}
+
+		const categories = await this.prisma.category.findMany({
+			where: searchTerm,
+			skip: +args?.skip,
+			take: +args?.take
+		})
+
+		if (!categories) throw new NotFoundException('There is no categories yet')
+
+		const totalCount = await this.prisma.category.count({
+			where: searchTerm
+		})
+
+		const isHasMore = isHasMorePagination(totalCount, +args?.skip, +args?.take)
+
+		return {
+			items: categories,
+			isHasMore,
+			totalCount
+		}
+	}
+
+	private getSearchTermFilter(searchTerm: string): Prisma.CategoryWhereInput {
+		return {
+			OR: [
+				{
+					name: {
+						contains: searchTerm,
+						mode: 'insensitive'
+					}
+				}
+			]
+		}
 	}
 
 	async update(id: number, dto: CategoryDto) {
@@ -39,22 +80,26 @@ export class CategoryService {
 			where: { id },
 			data: {
 				name: dto.name,
-				slug: generateSlug(dto.name)
+				slug: generateSlug(dto.name),
+				description: dto.description
 			}
 		})
 	}
 
 	async delete(id: number) {
 		return this.prisma.category.delete({
-			where: { id }
+			where: {
+				id: id
+			}
 		})
 	}
 
-	async create() {
+	async create(dto: CategoryDto) {
 		return this.prisma.category.create({
 			data: {
-				name: '',
-				slug: ''
+				name: dto.name,
+				slug: generateSlug(dto.name),
+				description: dto.description
 			}
 		})
 	}

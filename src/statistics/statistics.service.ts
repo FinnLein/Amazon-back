@@ -269,4 +269,23 @@ export class StatisticsService {
 
 		return months
 	}
+
+	async getMostExpensiveProductsByCategory() {
+		return this.prisma.product.findMany({
+			select: {
+				name: true,
+				price: true,
+				category: {
+					select: {
+						id: true,
+						name: true,
+						slug: true
+					}
+				}
+			},
+			orderBy: {
+				price: 'desc'
+			}
+		})
+	}
 }

@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { Prisma, Product } from '@prisma/client'
 import { PaginationArgsWithSearchTermAndSort } from 'src/pagination/dto/pagination.dto'
 import { isHasMorePagination } from 'src/pagination/is-has-more'
+import { PaginationResponse } from 'src/pagination/pagination-response'
 import { PrismaService } from 'src/prisma.service'
 import { generateSlug } from 'src/utils/generate-slug'
 import { EnumProductSort } from './dto/get-all-product.dto'
 import { ProductDto } from './dto/product.dto'
-import { ProductResponse } from './product.response'
 import {
 	productReturnObjectFullest,
 	returnProductObject
@@ -14,13 +14,11 @@ import {
 
 @Injectable()
 export class ProductService {
-	constructor(
-		private prisma: PrismaService,
-	) {}
+	constructor(private prisma: PrismaService) {}
 
 	async getAll(
 		args?: PaginationArgsWithSearchTermAndSort
-	): Promise<ProductResponse> {
+	): Promise<PaginationResponse<Product>> {
 		const { sort, searchTerm, skip, take } = args
 
 		const prismaSort: Prisma.ProductOrderByWithRelationInput[] = []
@@ -146,13 +144,19 @@ export class ProductService {
 		return products
 	}
 
-	async create() {
+	async create(dto: ProductDto) {
 		const product = await this.prisma.product.create({
 			data: {
-				name: '',
-				slug: '',
-				description: '',
-				price: 0
+				name: dto.name,
+				slug: dto.name,
+				description: dto.description,
+				price: dto.price,
+				images: dto.images,
+				category: {
+					connect: {
+						id: dto.category.id
+					}
+				}
 			}
 		})
 
@@ -160,7 +164,7 @@ export class ProductService {
 	}
 
 	async update(id: number, dto: ProductDto) {
-		const { description, name, price, categoryId, images } = dto
+		const { description, name, price, category, images } = dto
 
 		return this.prisma.product.update({
 			where: {
@@ -174,7 +178,7 @@ export class ProductService {
 				price,
 				category: {
 					connect: {
-						id: categoryId
+						id: category.id
 					}
 				}
 			}
@@ -182,6 +186,12 @@ export class ProductService {
 	}
 
 	async delete(id: number) {
-		return this.prisma.product.delete({ where: { id } })
+		this.prisma.review.delete({
+			where: { id }
+		})
+
+		return this.prisma.product.delete({
+			where: { id }
+		})
 	}
 }

@@ -6,9 +6,11 @@ import {
 	HttpCode,
 	Param,
 	Post,
-	Put
+	Put,
+	Query
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
+import { PaginationArgsWithSearchTerm } from 'src/pagination/dto/pagination.dto'
 import { CategoryService } from './category.service'
 import { CategoryDto } from './dto/category.dto'
 
@@ -17,8 +19,8 @@ export class CategoryController {
 	constructor(private readonly categoryService: CategoryService) {}
 
 	@Get()
-	async getAll() {
-		return this.categoryService.getAll()
+	async getAll(@Query() params?: PaginationArgsWithSearchTerm) {
+		return this.categoryService.getAll(params)
 	}
 
 	@Get('by-slug/:slug')
@@ -37,8 +39,8 @@ export class CategoryController {
 	@HttpCode(200)
 	@Auth('ADMIN')
 	@Post()
-	async create() {
-		return this.categoryService.create()
+	async create(@Body() dto: CategoryDto) {
+		return this.categoryService.create(dto)
 	}
 
 	@HttpCode(200)

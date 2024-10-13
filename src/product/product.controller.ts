@@ -10,9 +10,9 @@ import {
 	Query
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
+import { PaginationArgsWithSearchTermAndSort } from 'src/pagination/dto/pagination.dto'
 import { ProductDto } from './dto/product.dto'
 import { ProductService } from './product.service'
-import { PaginationArgsWithSearchTermAndSort } from 'src/pagination/dto/pagination.dto'
 
 @Controller('products')
 export class ProductController {
@@ -46,8 +46,8 @@ export class ProductController {
 	@Post()
 	@Auth('ADMIN')
 	@HttpCode(200)
-	async create() {
-		return this.productService.create()
+	async create(@Body() dto: ProductDto) {
+		return this.productService.create(dto)
 	}
 
 	@Put('/:id')
