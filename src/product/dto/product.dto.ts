@@ -1,3 +1,4 @@
+import { Brand } from '@prisma/client'
 import { ArrayMinSize, IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
 export class ProductDto {
@@ -22,8 +23,9 @@ export class ProductDto {
 	@ArrayMinSize(1)
 	images: string[]
 
-
 	category: Category
+
+	brand: Brand
 }
 
 export class Category {

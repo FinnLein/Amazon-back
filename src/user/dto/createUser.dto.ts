@@ -1,5 +1,6 @@
-import { EnumRole } from '@prisma/client'
+import { Role } from '@prisma/client'
 import {
+	IsArray,
 	IsEmail,
 	IsEnum,
 	IsOptional,
@@ -22,17 +23,22 @@ export class CreateUserDto {
 	@IsString()
 	phone?: string
 
-	@IsEnum(EnumRole)
+	@IsEnum(Role, { each: true })
+	@IsArray()
 	@IsOptional()
-	role?: EnumRole
+	rights?: Role[]
 
 	@MinLength(6, {
 		message: 'Password must be at least 6 characters long'
 	})
 	@IsString()
 	password: string
+
+	@IsString()
+	@IsOptional()
+	verificationToken?: string
 }
 
 export type UpdateUserDto = Partial<Omit<CreateUserDto, 'password'>>
 
-export type UpdateProfileDto = Partial<Omit<CreateUserDto, 'role'>>
+export type UpdateProfileDto = Partial<Omit<CreateUserDto, 'rights'>>

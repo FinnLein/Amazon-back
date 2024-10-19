@@ -66,15 +66,11 @@ export class UserService {
 		}
 	}
 	async findByEmail(email: string) {
-		const user = await this.prisma.user.findUnique({
+		return this.prisma.user.findUnique({
 			where: {
 				email
 			}
 		})
-
-		if (!user) throw new NotFoundException('User with this email doesnt exist')
-
-		return user
 	}
 	async toggleFavorites(id: number, productId: number) {
 		const user = await this.byId(id)
@@ -118,7 +114,6 @@ export class UserService {
 			}
 		})
 	}
-
 	async findOrCreateBySocial(profile: IGoogleProfile | IGithubProfile) {
 		let user = await this.findByEmail(profile.email)
 
@@ -128,7 +123,6 @@ export class UserService {
 
 		return user
 	}
-
 	async _createBySocial(
 		profile: IGoogleProfile | IGithubProfile
 	): Promise<User> {
@@ -151,6 +145,7 @@ export class UserService {
 	}
 
 	// Admin
+
 	async byId(id: number, selectObject: Prisma.UserSelect = {}) {
 		const user = await this.prisma.user.findUnique({
 			where: {
@@ -158,21 +153,6 @@ export class UserService {
 			},
 			select: {
 				...returnUserObject,
-				favorites: {
-					select: {
-						id: true,
-						name: true,
-						price: true,
-						images: true,
-						slug: true,
-						category: {
-							select: {
-								slug: true
-							}
-						},
-						reviews: true
-					}
-				},
 				...selectObject
 			}
 		})
@@ -204,7 +184,7 @@ export class UserService {
 				name: dto.name,
 				avatarPath: dto.avatarPath,
 				phone: dto.phone,
-				role: dto.role
+				rights: dto.rights
 			}
 		})
 	}

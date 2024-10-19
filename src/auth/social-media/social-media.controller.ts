@@ -1,71 +1,54 @@
-import {
-	Body,
-	Controller,
-	HttpCode,
-	Post,
-	Req,
-	Res,
-	UnauthorizedException
-} from '@nestjs/common'
-import { Request, Response } from 'express'
-import { AuthService } from './social-media.service'
-import { LoginDto, RegisterDto } from './dto/auth.dto'
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common'
+import { AuthGuard } from '@nestjs/passport'
+import { Response } from 'express'
+import { RefreshTokenService } from '../refresh-token.service'
+import { AuthService } from './../auth.service'
+import { SocialMediaService } from './social-media.service'
+import { TProfileSocial } from './social-media.types'
 
 @Controller('auth')
-export class AuthController {
-	constructor(private readonly authService: AuthService) {}
+export class SocialMediaController {
+	constructor(
+		private readonly socialMediaService: SocialMediaService,
+		private readonly authService: AuthService,
+		private readonly refreshTokenService: RefreshTokenService
+	) {}
 
-	@HttpCode(200)
-	@Post('register')
-	async register(
-		@Body() dto: RegisterDto,
+	_CLIENT_BASE_URL = 'http://localhost:3000/social-auth?accessToken='
+
+	@Get('google')
+	@UseGuards(AuthGuard('google'))
+	async googleAuth() {}
+
+	@Get('google/redirect')
+	@UseGuards(AuthGuard('google'))
+	async googleAuthRedirect(
+		@Req() req: { user: TProfileSocial },
 		@Res({ passthrough: true }) res: Response
 	) {
-		const response = await this.authService.register(dto)
+		const user = await this.socialMediaService.login(req)
+		const { accessToken, refreshToken } =
+			await this.authService.buildResponseObject(user)
+		this.refreshTokenService.addRefreshTokenToResponse(res, refreshToken)
 
-		this.authService.addRefreshTokenToResponse(res, response.refreshToken)
-
-		return response
+		return res.redirect(`${this._CLIENT_BASE_URL}${accessToken}`)
 	}
 
-	@HttpCode(200)
-	@Post('login')
-	async login(
-		@Body() dto: LoginDto,
+	@Get('github')
+	@UseGuards(AuthGuard('github'))
+	async githubAuth() {}
+
+	@Get('github/redirect')
+	@UseGuards(AuthGuard('github'))
+	async githubAuthRedirect(
+		@Req() req: { user: TProfileSocial },
 		@Res({ passthrough: true }) res: Response
 	) {
-		const response = await this.authService.login(dto)
+		const user = await this.socialMediaService.login(req)
+		const { accessToken, refreshToken } =
+			await this.authService.buildResponseObject(user)
+		this.refreshTokenService.addRefreshTokenToResponse(res, refreshToken)
 
-		this.authService.addRefreshTokenToResponse(res, response.refreshToken)
-
-		return response
-	}
-	@HttpCode(200)
-	@Post('logout')
-	async logout(@Res({ passthrough: true }) res: Response) {
-		this.authService.removeRefreshTokenFromResponse(res)
-		return true
-	}
-
-	@HttpCode(200)
-	@Post('login/access-token')
-	async getNewTokens(
-		@Req() req: Request,
-		@Res({ passthrough: true }) res: Response
-	) {
-		const refreshTokenFromCookies = req.cookies[this.authService.REFRESH_TOKEN]
-
-		if (!refreshTokenFromCookies) {
-			this.authService.removeRefreshTokenFromResponse(res)
-			throw new UnauthorizedException('Refresh token not passed')
-		}
-
-		const response = await this.authService.getNewTokens(
-			refreshTokenFromCookies
-		)
-
-		this.authService.addRefreshTokenToResponse(res, response.refreshToken)
-
-		return response
+		return res.redirect(`${this._CLIENT_BASE_URL}${accessToken}`)
 	}
 }

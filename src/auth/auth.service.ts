@@ -5,25 +5,22 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { EnumRole, User } from '@prisma/client'
+import { Role, User } from '@prisma/client'
 import { hash, verify } from 'argon2'
-import { Response } from 'express'
-import { EmailService } from 'src/email/email.service'
 import { PrismaService } from 'src/prisma.service'
 import { UserService } from 'src/user/user.service'
 import { LoginDto, RegisterDto } from './dto/auth.dto'
 
 @Injectable()
 export class AuthService {
-	EXPIRE_DAY_REFRESH_TOKEN = 1
-	REFRESH_TOKEN = 'refreshToken'
-
 	constructor(
 		private prisma: PrismaService,
 		private jwt: JwtService,
-		private userService: UserService,
-		private emailService: EmailService
+		private userService: UserService
 	) {}
+
+	private readonly TOKEN_EXPIRATION_ACCESS = '24h'
+	private readonly TOKEN_EXPIRATION_REFRESH = '30d'
 
 	async register(dto: RegisterDto) {
 		const oldUser = await this.userService.findByEmail(dto.email)
@@ -36,11 +33,12 @@ export class AuthService {
 				name: dto.name,
 				avatarPath: '/uploads/default-avatar.png',
 				phone: dto.phone,
-				password: await hash(dto.password)
+				password: await hash(dto.password),
+				rights: [Role.USER]
 			}
 		})
 
-		const tokens = await this.issueTokens(user.id)
+		const tokens = await this.issueTokens(user.id, user.rights)
 
 		// await this.emailService.sendWelcome(user.email)
 
@@ -51,9 +49,21 @@ export class AuthService {
 	}
 	async login(dto: LoginDto) {
 		const user = await this.validateUser(dto)
-		const tokens = await this.issueTokens(user.id, user.role)
+		const tokens = await this.issueTokens(user.id, user.rights)
 
 		return { user: await this.getUsersField(user), ...tokens }
+	}
+	async verifyEmail(token: string) {
+		const user = await this.prisma.user.findFirst({
+			where: {
+				verificationToken: token
+			}
+		})
+		if (!user) throw new NotFoundException('Token not exists')
+
+		await this.userService.update(user.id, { verificationToken: null })
+
+		return 'Email verified'
 	}
 	async getNewTokens(refreshToken: string) {
 		const result = await this.jwt.verifyAsync(refreshToken)
@@ -61,69 +71,47 @@ export class AuthService {
 
 		const user = await this.userService.byId(result.id)
 
-		const tokens = await this.issueTokens(user.id, user.role)
+		const tokens = await this.issueTokens(user.id, user.rights)
 
 		return {
 			...tokens,
 			user: await this.getUsersField(user)
 		}
 	}
-	private async issueTokens(userId: number, role?: EnumRole) {
-		const data = { id: userId, role }
+	private async issueTokens(userId: number, rights: Role[]) {
+		const data = { id: userId, rights }
 
 		const accessToken = this.jwt.sign(data, {
-			expiresIn: '24h'
+			expiresIn: this.TOKEN_EXPIRATION_ACCESS
 		})
 
 		const refreshToken = this.jwt.sign(data, {
-			expiresIn: '30d'
+			expiresIn: this.TOKEN_EXPIRATION_REFRESH
 		})
 
 		return { accessToken, refreshToken }
 	}
-	addRefreshTokenToResponse(res: Response, refreshToken: string) {
-		const expiresIn = new Date()
-		expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN)
-
-		res.cookie(this.REFRESH_TOKEN, refreshToken, {
-			httpOnly: true,
-			domain: 'localhost',
-			expires: expiresIn,
-			// true if production
-			secure: true,
-			// lax if production
-			sameSite: 'none'
-		})
-
-		return res
-	}
-	removeRefreshTokenFromResponse(res: Response) {
-		res.cookie(this.REFRESH_TOKEN, '', {
-			httpOnly: true,
-			domain: 'localhost',
-			expires: new Date(0),
-			// true if production
-			secure: true,
-			// lax if production
-			sameSite: 'none'
-		})
+	async buildResponseObject(user: User) {
+		const tokens = await this.issueTokens(user.id, user.rights)
+		return { user: this.getUsersField(user), ...tokens }
 	}
 	private async validateUser(dto: LoginDto) {
 		const user = await this.userService.findByEmail(dto.email)
 
-		if (!user) throw new NotFoundException('User is not found')
+		if (!user) throw new NotFoundException('Email or password invalid')
 
 		const isValid = await verify(user.password, dto.password)
 
-		if (!isValid) throw new UnauthorizedException('Invalid password')
+		if (!isValid) throw new UnauthorizedException('Email or password invalid')
 
 		return user
 	}
+
 	private async getUsersField(user: User) {
 		return {
 			id: user.id,
 			email: user.email,
-			role: user.role
+			rights: user.rights
 		}
 	}
 }

@@ -30,6 +30,7 @@ const createProducts = async (quantity: number) => {
 						description: faker.commerce.productDescription()
 					}
 				},
+				brand: 'Iphone',
 				reviews: {
 					create: [
 						{
@@ -37,7 +38,7 @@ const createProducts = async (quantity: number) => {
 							text: faker.lorem.paragraph(),
 							user: {
 								connect: {
-									id: 2
+									id: 10
 								}
 							}
 						},
@@ -46,7 +47,7 @@ const createProducts = async (quantity: number) => {
 							text: faker.lorem.paragraph(),
 							user: {
 								connect: {
-									id: 2
+									id: 10
 								}
 							}
 						}
@@ -90,6 +91,7 @@ const createUsers = async (quantity: number) => {
 async function main() {
 	console.log('Start seeding')
 	await createUsers(20)
+	await createProducts(20)
 }
 
 main()

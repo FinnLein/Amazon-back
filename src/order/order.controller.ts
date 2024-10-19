@@ -7,6 +7,7 @@ import {
 	Param,
 	Post
 } from '@nestjs/common'
+import { Role } from '@prisma/client'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
 import { OrderDto } from './dto/order.dto'
@@ -42,7 +43,7 @@ export class OrderController {
 		return this.orderService.updateStatus(dto)
 	}
 
-	@Auth('ADMIN')
+	@Auth(Role.ADMIN)
 	@HttpCode(200)
 	@Delete(':id')
 	async delete(@Param('id') id: string) {

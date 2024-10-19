@@ -1,12 +1,14 @@
 import { applyDecorators, UseGuards } from '@nestjs/common'
-import { EnumRole } from '@prisma/client'
-import { OnlyAdminGuard } from '../guards/admin.guard'
-import { JWTAuthGuard } from '../guards/jwt.guard'
 
-export const Auth = (role: EnumRole = EnumRole.USER) => {
-	if (role === EnumRole.ADMIN) {
-		return applyDecorators(UseGuards(JWTAuthGuard, OnlyAdminGuard))
+import { Role } from '@prisma/client'
+import { JWTAuthGuard } from '../guards/jwt.guard'
+import { RolesGuard } from '../guards/roles.guard'
+import { Roles } from './roles.decorator'
+
+export const Auth = (roles: Role | Role[] = [Role.USER]) => {
+	if (!Array.isArray(roles)) {
+		roles = [roles]
 	}
 
-	return applyDecorators(UseGuards(JWTAuthGuard))
+	return applyDecorators(Roles(...roles), UseGuards(JWTAuthGuard, RolesGuard))
 }

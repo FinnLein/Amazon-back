@@ -8,10 +8,9 @@ import {
 	Patch,
 	Post,
 	Put,
-	Query,
-	UsePipes,
-	ValidationPipe
+	Query
 } from '@nestjs/common'
+import { Role } from '@prisma/client'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
 import { PaginationArgsWithSearchTerm } from 'src/pagination/dto/pagination.dto'
@@ -22,73 +21,71 @@ import { UserService } from './user.service'
 export class UserController {
 	constructor(private readonly userService: UserService) {}
 
-	@Get(':email')
+	@Get('by-email/:email')
 	@Auth()
 	async getByEmail(@Param('email') email: string) {
 		return this.userService.findByEmail(email)
 	}
-
 	@Get('profile')
-	@Auth()
-	async getProfile(@CurrentUser('id') id: number) {
-		return this.userService.byId(id)
+	@Auth(Role.USER)
+	async getProfile(@CurrentUser('id') id: string) {
+		return this.userService.byId(+id)
 	}
 	@HttpCode(200)
 	@Put('profile')
-	@Auth()
+	@Auth(Role.USER)
 	async updateProfile(
-		@CurrentUser('id') id: number,
+		@CurrentUser('id') id: string,
 		@Body() dto: UpdateUserDto
 	) {
-		return this.userService.updateProfile(id, dto)
+		return this.userService.updateProfile(+id, dto)
 	}
 
 	@HttpCode(200)
 	@Patch('profile-avatar')
-	@Auth()
+	@Auth(Role.USER)
 	async updateProfileAvatar(
-		@CurrentUser('id') id: number,
+		@CurrentUser('id') id: string,
 		@Body() dto: UpdateUserDto
 	) {
-		return this.userService.updateProfileAvatar(id, dto)
+		return this.userService.updateProfileAvatar(+id, dto)
 	}
 
 	@HttpCode(200)
 	@Patch('profile/favorites/:productId')
-	@Auth()
+	@Auth(Role.USER)
 	async toggleFavorite(
-		@CurrentUser('id') id: number,
+		@CurrentUser('id') id: string,
 		@Param('productId') productId: string
 	) {
-		return this.userService.toggleFavorites(id, +productId)
+		return this.userService.toggleFavorites(+id, +productId)
 	}
-
 
 	// Admin
 
-	@Auth('ADMIN')
+	@Auth(Role.ADMIN)
 	@Get()
 	async getAllUsers(@Query() params: PaginationArgsWithSearchTerm) {
 		return this.userService.getAllUsers(params)
 	}
 
-	@Auth('ADMIN')
+	@Auth(Role.ADMIN)
 	@Get(':id')
-	async getById(@Param('id') id: string) {
+	async byId(@Param('id') id: string) {
 		return this.userService.byId(+id)
 	}
-	@Auth('ADMIN')
+
+	@Auth(Role.ADMIN)
 	@Post()
 	async create(@Body() dto: CreateUserDto) {
 		return this.userService.create(dto)
 	}
-	@Auth('ADMIN')
+	@Auth(Role.USER)
 	@Put(':id')
-	@UsePipes(new ValidationPipe())
 	async update(@Body() dto: UpdateUserDto, @Param('id') id: string) {
 		return this.userService.update(+id, dto)
 	}
-	@Auth('ADMIN')
+	@Auth(Role.ADMIN)
 	@Delete(':id')
 	async delete(@Param('id') id: string) {
 		return this.userService.delete(+id)

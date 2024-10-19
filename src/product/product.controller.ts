@@ -9,6 +9,7 @@ import {
 	Put,
 	Query
 } from '@nestjs/common'
+import { Role } from '@prisma/client'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { PaginationArgsWithSearchTermAndSort } from 'src/pagination/dto/pagination.dto'
 import { ProductDto } from './dto/product.dto'
@@ -38,27 +39,28 @@ export class ProductController {
 	}
 
 	// Admin
-	@Auth('ADMIN')
+	@Auth(Role.ADMIN)
 	@Get('/:id')
 	async getById(@Param('id') id: string) {
 		return this.productService.byId(+id)
 	}
+
 	@Post()
-	@Auth('ADMIN')
+	@Auth(Role.ADMIN)
 	@HttpCode(200)
 	async create(@Body() dto: ProductDto) {
 		return this.productService.create(dto)
 	}
 
 	@Put('/:id')
-	@Auth('ADMIN')
+	@Auth(Role.ADMIN)
 	@HttpCode(200)
 	async update(@Param('id') id: string, @Body() dto: ProductDto) {
 		return this.productService.update(+id, dto)
 	}
 
 	@Delete('/:id')
-	@Auth('ADMIN')
+	@Auth(Role.ADMIN)
 	@HttpCode(200)
 	async delete(@Param('id') id: string) {
 		return this.productService.delete(+id)

@@ -15,11 +15,11 @@ model User {
   email    String @unique
   password String
 
-  name       String   @unique
-  avatarPath String   @default("/uploads/default-avatar.png") @map("avatar_path")
-  role       EnumRole @default(USER)
-  phone      String   @default("")
-  
+  name       String @unique
+  avatarPath String @default("/uploads/default-avatar.png") @map("avatar_path")
+  rights     Role[] @default([USER])
+  phone      String @default("")
+
   verificationToken String? @default(cuid()) @map("verification_token")
 
   orders    Order[]
@@ -49,6 +49,7 @@ model Product {
 
   orderItems OrderItem[]
   reviews    Review[]
+  brand      Brand
 
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   categoryId Int?      @map("category_id")
@@ -123,7 +124,18 @@ enum EnumOrderStatus {
   CANCELED
 }
 
-enum EnumRole {
-  ADMIN
+enum Role {
   USER
+  PREMIUM
+  MANAGER
+  ADMIN
+}
+
+enum Brand {
+  Iphone
+  Uphone
+  Samsug
+  Samsuga
+  Samsuka
+  Samsung
 }

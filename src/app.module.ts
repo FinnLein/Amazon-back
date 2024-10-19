@@ -5,7 +5,6 @@ import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha'
 import { AuthModule } from './auth/auth.module'
 import { CategoryModule } from './category/category.module'
 import { getGoogleRecaptchaConfig } from './config/google-recaptcha.config'
-import { EmailModule } from './email/email.module'
 import { MediaModule } from './media/media.module'
 import { OrderModule } from './order/order.module'
 import { ProductModule } from './product/product.module'
@@ -33,7 +32,6 @@ import { YookassaModule } from './yookassa/yookassa.module'
 		StatisticsModule,
 		YookassaModule,
 		SettingsModule,
-		EmailModule,
 		MediaModule
 	]
 })

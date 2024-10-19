@@ -152,6 +152,7 @@ export class ProductService {
 				description: dto.description,
 				price: dto.price,
 				images: dto.images,
+				brand: dto.brand,
 				category: {
 					connect: {
 						id: dto.category.id

@@ -149,7 +149,14 @@ export class StatisticsService {
 			orderBy: {
 				price: 'asc'
 			},
-			take: 5
+			take: 5,
+			select: {
+				id: true,
+				images: true,
+				name: true,
+				slug: true,
+				price: true
+			}
 		})
 
 		const mostChippiesProducts = result.map(p => {
@@ -162,7 +169,7 @@ export class StatisticsService {
 			}
 		})
 
-		return mostChippiesProducts
+		return result
 	}
 	async getUsersCount() {
 		const usersCount = await this.prisma.user.count()
@@ -197,6 +204,29 @@ export class StatisticsService {
 			}
 		]
 	}
+
+	async getProductsCount() {
+		const productsCount = await this.prisma.product.count()
+
+		const newProductsCount = await this.prisma.product.count({
+			where: {
+				createdAt: {
+					gte: new Date(new Date().setDate(new Date().getDate() - 30))
+				}
+			}
+		})
+
+		return [
+			{
+				name: 'Products',
+				value: productsCount
+			},
+			{
+				name: 'New products',
+				value: newProductsCount
+			}
+		]
+	}
 	async getUsersRegistrationByMonths() {
 		const currentMonth = new Date().getMonth()
 		const currentYear = new Date().getFullYear()
@@ -204,7 +234,7 @@ export class StatisticsService {
 		// начало отсчётного периода: сентябрь прошлого года
 		const startDate = new Date(currentYear - 1, currentMonth + 1, 1)
 
-		// конец отсчётного периода: последний день текущео месяца
+		// конец отсчётного периода: последний день текущего месяца
 		const endDate = new Date(currentYear, currentMonth + 1, 0)
 
 		const allMonths = this.generateMonths(startDate, endDate)

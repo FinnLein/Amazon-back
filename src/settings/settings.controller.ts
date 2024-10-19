@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common'
+import { Role } from '@prisma/client'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { SettingsService } from './settings.service'
 
@@ -6,13 +7,13 @@ import { SettingsService } from './settings.service'
 export class SettingsController {
 	constructor(private readonly settingsService: SettingsService) {}
 
-	@Auth('ADMIN')
+	@Auth(Role.ADMIN)
 	@Get(':key')
 	get(@Param('key') key: string) {
 		return this.settingsService.getByKey(key)
 	}
 
-	@Auth('ADMIN')
+	@Auth(Role.ADMIN)
 	@Post()
 	set(@Body() settingData: { key: string; value: string }) {
 		return this.settingsService.set(settingData.key, settingData.value)
