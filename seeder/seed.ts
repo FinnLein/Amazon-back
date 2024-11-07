@@ -13,6 +13,7 @@ const createProducts = async (quantity: number) => {
 	for (let i = 0; i < quantity; i++) {
 		const productName = faker.commerce.productName()
 		const categoryName = faker.commerce.department()
+		const brandName = faker.commerce.department()
 
 		const product = await prisma.product.create({
 			data: {
@@ -30,7 +31,13 @@ const createProducts = async (quantity: number) => {
 						description: faker.commerce.productDescription()
 					}
 				},
-				brand: 'Iphone',
+				rating: faker.number.int({ min: 1, max: 5 }),
+				brand: {
+					create: {
+						name: brandName,
+						slug: faker.helpers.slugify(brandName).toLowerCase()
+					}
+				},
 				reviews: {
 					create: [
 						{

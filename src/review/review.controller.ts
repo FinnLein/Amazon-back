@@ -5,11 +5,11 @@ import {
 	HttpCode,
 	Param,
 	Post,
-	UsePipes,
+	Query
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
-import { ReviewDto } from './dto/review.dto'
+import { FilterReviewDto, ReviewDto } from './dto/review.dto'
 import { ReviewService } from './review.service'
 
 @Controller('reviews')
@@ -17,8 +17,8 @@ export class ReviewController {
 	constructor(private readonly reviewService: ReviewService) {}
 
 	@Get()
-	async getAll() {
-		return this.reviewService.getAll()
+	async getAll(@Query() query: FilterReviewDto) {
+		return this.reviewService.getAll(query)
 	}
 
 	@Auth()

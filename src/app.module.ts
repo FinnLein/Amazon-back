@@ -13,6 +13,7 @@ import { SettingsModule } from './settings/settings.module'
 import { StatisticsModule } from './statistics/statistics.module'
 import { UserModule } from './user/user.module'
 import { YookassaModule } from './yookassa/yookassa.module'
+import { BrandModule } from './brand/brand.module'
 @Module({
 	imports: [
 		ConfigModule.forRoot({
@@ -32,7 +33,8 @@ import { YookassaModule } from './yookassa/yookassa.module'
 		StatisticsModule,
 		YookassaModule,
 		SettingsModule,
-		MediaModule
+		MediaModule,
+		BrandModule
 	]
 })
 export class AppModule {}

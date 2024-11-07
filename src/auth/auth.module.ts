@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
 import { getJwtConfig } from 'src/config/jwt.config'
 
+import { PaginationService } from 'src/pagination/pagination.service'
 import { PrismaService } from 'src/prisma.service'
 import { UserModule } from 'src/user/user.module'
 import { UserService } from 'src/user/user.service'
@@ -25,7 +26,8 @@ import { JwtStrategy } from './strategies/jwt.strategy'
 		GithubStrategy,
 		GoogleStrategy,
 		SocialMediaService,
-		JwtStrategy
+		JwtStrategy,
+		PaginationService
 	],
 	imports: [
 		JwtModule.registerAsync({

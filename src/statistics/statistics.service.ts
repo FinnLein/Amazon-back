@@ -22,7 +22,8 @@ export class StatisticsService {
 
 		const amount = await this.prisma.order.aggregate({
 			where: {
-				userId
+				userId,
+				status: 'PAYED'
 			},
 			_sum: {
 				total: true
@@ -39,15 +40,132 @@ export class StatisticsService {
 				value: user.reviews.length
 			},
 			{
-				name: 'Favorites',
-				value: user.favorites.length
-			},
-			{
 				name: 'Amount',
-				value: amount
+				value: amount._sum.total
 			}
 		]
 	}
+	async getMainAdmin() {
+		const { value: ordersCount } = await this.getOrdersCount()
+		const { value: usersCount } = await this.getUsersCount()
+		const { value: reviewsCount } = await this.getReviewsCount()
+
+		const totalAmount = await this.prisma.order.aggregate({
+			_sum: {
+				total: true
+			},
+			where: {
+				status: 'PAYED'
+			}
+		})
+
+		return [
+			{
+				name: 'Orders',
+				value: usersCount
+			},
+			{
+				name: 'Reviews',
+				value: reviewsCount
+			},
+			{
+				name: 'Orders',
+				value: ordersCount
+			},
+			{
+				name: 'Amount',
+				value: totalAmount._sum.total
+			}
+		]
+	}
+	async getUsersCount() {
+		const usersCount = await this.prisma.user.count()
+		return {
+			name: 'Users',
+			value: usersCount
+		}
+	}
+	async getNewUsersCount() {
+		const newUsersCount = await this.prisma.user.count({
+			where: {
+				createdAt: {
+					gte: new Date(new Date().setDate(new Date().getDate() - 30))
+				}
+			}
+		})
+		return {
+			name: 'New user',
+			value: newUsersCount
+		}
+	}
+	async getActiveUsersCount() {
+		const activeUsersCount = await this.prisma.user.count({
+			where: {
+				updatedAt: {
+					gte: new Date(new Date().setDate(new Date().getDate() - 30))
+				}
+			}
+		})
+
+		return {
+			name: 'Fresh users',
+			value: activeUsersCount
+		}
+	}
+	async getAllUserCount() {
+		const usersCount = await this.getUsersCount()
+		const freshUsersCount = await this.getActiveUsersCount()
+		const newUsersCount = await this.getNewUsersCount()
+
+		return [
+			{
+				name: usersCount.name,
+				value: usersCount.value
+			},
+			{
+				name: freshUsersCount.name,
+				value: freshUsersCount.value
+			},
+			{
+				name: newUsersCount.name,
+				value: newUsersCount.value
+			}
+		]
+	}
+	async getProductsCount() {
+		const productsCount = await this.prisma.product.count()
+
+		return {
+			name: 'Products',
+			value: productsCount
+		}
+	}
+	async getReviewsCount() {
+		const reviewCount = await this.prisma.review.count()
+		return {
+			name: 'Products',
+			value: reviewCount
+		}
+	}
+	async getOrdersCount() {
+		const orderCount = await this.prisma.order.count({
+			where: {
+				status: 'PAYED'
+			}
+		})
+		return {
+			name: 'Products',
+			value: orderCount
+		}
+	}
+	async getCategoryCount() {
+		const categoryCount = await this.prisma.category.count()
+		return {
+			name: 'Products',
+			value: categoryCount
+		}
+	}
+
 	async getBestSellingProduct() {
 		const result = await this.prisma.orderItem.groupBy({
 			by: ['productId'],
@@ -171,62 +289,7 @@ export class StatisticsService {
 
 		return result
 	}
-	async getUsersCount() {
-		const usersCount = await this.prisma.user.count()
 
-		const activeUsersCount = await this.prisma.user.count({
-			where: {
-				updatedAt: {
-					gte: new Date(new Date().setDate(new Date().getDate() - 30))
-				}
-			}
-		})
-		const newUsersCount = await this.prisma.user.count({
-			where: {
-				createdAt: {
-					gte: new Date(new Date().setDate(new Date().getDate() - 30))
-				}
-			}
-		})
-
-		return [
-			{
-				name: 'Users',
-				value: usersCount
-			},
-			{
-				name: 'Fresh users',
-				value: activeUsersCount
-			},
-			{
-				name: 'New users',
-				value: newUsersCount
-			}
-		]
-	}
-
-	async getProductsCount() {
-		const productsCount = await this.prisma.product.count()
-
-		const newProductsCount = await this.prisma.product.count({
-			where: {
-				createdAt: {
-					gte: new Date(new Date().setDate(new Date().getDate() - 30))
-				}
-			}
-		})
-
-		return [
-			{
-				name: 'Products',
-				value: productsCount
-			},
-			{
-				name: 'New products',
-				value: newProductsCount
-			}
-		]
-	}
 	async getUsersRegistrationByMonths() {
 		const currentMonth = new Date().getMonth()
 		const currentYear = new Date().getFullYear()

@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client'
+import { returnBrandObject } from 'src/brand/return-brand.object'
 import { returnCategoryObject } from 'src/category/return-category.object'
 import { returnReviewObject } from 'src/review/return-review.object'
 
@@ -10,8 +11,9 @@ export const returnProductObject: Prisma.ProductSelect = {
 	price: true,
 	createdAt: true,
 	slug: true,
+	rating: true,
 	category: { select: returnCategoryObject },
-	brand: true,
+	brand: { select: returnBrandObject },
 	reviews: {
 		select: returnReviewObject
 	}

@@ -13,7 +13,7 @@ import {
 import { Role } from '@prisma/client'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
-import { PaginationArgsWithSearchTerm } from 'src/pagination/dto/pagination.dto'
+import { PaginationArgsWithSrchTrm } from 'src/pagination/dto/pagination.dto'
 import { CreateUserDto, UpdateUserDto } from './dto/createUser.dto'
 import { UserService } from './user.service'
 
@@ -65,8 +65,8 @@ export class UserController {
 
 	@Auth(Role.ADMIN)
 	@Get()
-	async getAllUsers(@Query() params: PaginationArgsWithSearchTerm) {
-		return this.userService.getAllUsers(params)
+	async getAllUsers(@Query() query: PaginationArgsWithSrchTrm) {
+		return this.userService.getAllUsers(query)
 	}
 
 	@Auth(Role.ADMIN)

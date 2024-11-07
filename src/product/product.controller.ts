@@ -11,8 +11,7 @@ import {
 } from '@nestjs/common'
 import { Role } from '@prisma/client'
 import { Auth } from 'src/auth/decorators/auth.decorator'
-import { PaginationArgsWithSearchTermAndSort } from 'src/pagination/dto/pagination.dto'
-import { ProductDto } from './dto/product.dto'
+import { FilterProductDto, ProductDto } from './dto/get-all-product.dto'
 import { ProductService } from './product.service'
 
 @Controller('products')
@@ -20,7 +19,7 @@ export class ProductController {
 	constructor(private readonly productService: ProductService) {}
 
 	@Get()
-	async getAll(@Query() query: PaginationArgsWithSearchTermAndSort) {
+	async getAll(@Query() query: FilterProductDto) {
 		return this.productService.getAll(query)
 	}
 

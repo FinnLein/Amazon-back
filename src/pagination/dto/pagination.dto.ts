@@ -1,25 +1,19 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator'
-import { EnumProductSort } from 'src/product/dto/get-all-product.dto'
-
+import { IsOptional, IsString } from 'class-validator'
 
 export class PaginationArgs {
-	@IsOptional()
-	@IsString()
-	skip?: string
 
 	@IsOptional()
 	@IsString()
-	take?: string
+	page?: string
+
+	@IsOptional()
+	@IsString()
+	perPage?: string
+
 }
 
-export class PaginationArgsWithSearchTerm extends PaginationArgs {
+export class PaginationArgsWithSrchTrm extends PaginationArgs {
 	@IsOptional()
 	@IsString()
 	searchTerm?: string
-}
-
-export class PaginationArgsWithSearchTermAndSort extends PaginationArgsWithSearchTerm {
-	@IsOptional()
-	@IsEnum(EnumProductSort)
-	sort?: EnumProductSort
 }

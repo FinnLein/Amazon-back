@@ -19,7 +19,8 @@ export class OrderService {
 	async getAll(userId: number) {
 		return this.prisma.order.findMany({
 			where: {
-				userId
+				userId,
+				status: 'PAYED'
 			},
 			orderBy: {
 				createdAt: 'desc'
@@ -38,7 +39,8 @@ export class OrderService {
 	async getLast(userId: number) {
 		return this.prisma.order.findMany({
 			where: {
-				userId
+				userId,
+				status: 'PAYED'
 			},
 			take: 3,
 			orderBy: {
@@ -46,7 +48,7 @@ export class OrderService {
 			},
 			include: {
 				items: {
-					include: {	
+					include: {
 						product: {
 							select: returnProductObject
 						}

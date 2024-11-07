@@ -9,9 +9,10 @@ import {
 	IGithubProfile,
 	IGoogleProfile
 } from 'src/auth/social-media/social-media.types'
-import { PaginationArgsWithSearchTerm } from 'src/pagination/dto/pagination.dto'
+import { PaginationArgsWithSrchTrm } from 'src/pagination/dto/pagination.dto'
 import { isHasMorePagination } from 'src/pagination/is-has-more'
 import { PaginationResponse } from 'src/pagination/pagination-response'
+import { PaginationService } from 'src/pagination/pagination.service'
 import { PrismaService } from 'src/prisma.service'
 import {
 	CreateUserDto,
@@ -22,18 +23,23 @@ import { returnUserObject } from './return-user.object'
 
 @Injectable()
 export class UserService {
-	constructor(private prisma: PrismaService) {}
+	constructor(
+		private prisma: PrismaService,
+		private paginationService: PaginationService
+	) {}
 
 	async getAllUsers(
-		args?: PaginationArgsWithSearchTerm
+		args?: PaginationArgsWithSrchTrm
 	): Promise<PaginationResponse<User>> {
+		const { skip, perPage } = this.paginationService.getPagination(args)
+
 		const searchTermQuery = args?.searchTerm
-			? this.getSearchTermFilter(args?.searchTerm)
+			? this._getSearchTermFilter(args?.searchTerm)
 			: {}
 
 		const users = await this.prisma.user.findMany({
-			skip: +args?.skip,
-			take: +args?.take,
+			skip,
+			take: perPage,
 			where: searchTermQuery
 		})
 
@@ -43,11 +49,11 @@ export class UserService {
 			where: searchTermQuery
 		})
 
-		const isHasMore = isHasMorePagination(totalCount, +args?.skip, +args?.take)
+		const isHasMore = isHasMorePagination(totalCount, skip, perPage)
 
 		return { items: users, isHasMore, totalCount }
 	}
-	private getSearchTermFilter(searchTerm: string): Prisma.UserWhereInput {
+	private _getSearchTermFilter(searchTerm?: string): Prisma.UserWhereInput {
 		return {
 			OR: [
 				{
@@ -123,7 +129,7 @@ export class UserService {
 
 		return user
 	}
-	async _createBySocial(
+	private async _createBySocial(
 		profile: IGoogleProfile | IGithubProfile
 	): Promise<User> {
 		const email = profile.email

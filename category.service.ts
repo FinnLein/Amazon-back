@@ -1,3 +1,4 @@
+import { Prisma } from '.prisma/client'
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { Category } from '@prisma/client'
 import { PaginationArgsWithSrchTrm } from 'src/pagination/dto/pagination.dto'
@@ -6,9 +7,8 @@ import { PaginationResponse } from 'src/pagination/pagination-response'
 import { PaginationService } from 'src/pagination/pagination.service'
 import { PrismaService } from 'src/prisma.service'
 import { generateSlug } from 'src/utils/generate-slug'
-import { Prisma } from './../../node_modules/.prisma/client/index.d'
-import { CategoryDto } from './dto/category.dto'
-import { returnCategoryObject } from './return-category.object'
+import { CategoryDto } from './src/category/dto/category.dto'
+import { returnCategoryObject } from './src/category/return-category.object'
 
 @Injectable()
 export class CategoryService {

@@ -12,21 +12,21 @@ import {
 import { Role } from '@prisma/client'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { PaginationArgsWithSrchTrm } from 'src/pagination/dto/pagination.dto'
-import { CategoryService } from '../../category.service'
-import { CategoryDto } from './dto/category.dto'
+import { BrandService } from './brand.service'
+import { BrandDto } from './dto/brand.dto'
 
-@Controller('categories')
-export class CategoryController {
-	constructor(private readonly categoryService: CategoryService) {}
+@Controller('brands')
+export class BrandController {
+	constructor(private readonly brandService: BrandService) {}
 
 	@Get()
 	async getAll(@Query() params?: PaginationArgsWithSrchTrm) {
-		return this.categoryService.getAll(params)
+		return this.brandService.getAll(params)
 	}
 
 	@Get('by-slug/:slug')
 	async bySlug(@Param('slug') slug: string) {
-		return this.categoryService.bySlug(slug)
+		return this.brandService.bySlug(slug)
 	}
 
 	// Admin
@@ -34,27 +34,27 @@ export class CategoryController {
 	@Get(':id')
 	@Auth([Role.ADMIN])
 	async byId(@Param('id') id: string) {
-		return this.categoryService.byId(+id)
+		return this.brandService.byId(+id)
 	}
 
 	@HttpCode(200)
 	@Auth([Role.ADMIN])
 	@Post()
-	async create(@Body() dto: CategoryDto) {
-		return this.categoryService.create(dto)
+	async create(@Body() dto: BrandDto) {
+		return this.brandService.create(dto)
 	}
 
 	@HttpCode(200)
 	@Auth([Role.ADMIN])
 	@Put(':id')
-	async update(@Param('id') id: string, @Body() dto: CategoryDto) {
-		return this.categoryService.update(+id, dto)
+	async update(@Param('id') id: string, @Body() dto: BrandDto) {
+		return this.brandService.update(+id, dto)
 	}
 
 	@HttpCode(200)
 	@Auth([Role.ADMIN])
 	@Delete(':id')
 	async delete(@Param('id') id: string) {
-		return this.categoryService.delete(+id)
+		return this.brandService.delete(+id)
 	}
 }

@@ -13,6 +13,11 @@ export class StatisticsController {
 	async getStatistics(@CurrentUser('id') id: number) {
 		return this.statisticsService.getMain(id)
 	}
+	@Get('/admin-main')
+	@Auth([Role.ADMIN, Role.MANAGER])
+	async getMainAdmin() {
+		return this.statisticsService.getMainAdmin()
+	}
 
 	@Auth([Role.ADMIN, Role.MANAGER])
 	@Get('/best-selling-products')
@@ -37,7 +42,7 @@ export class StatisticsController {
 	@Auth([Role.ADMIN, Role.MANAGER])
 	@Get('/users-count')
 	async getUsersCount() {
-		return this.statisticsService.getUsersCount()
+		return this.statisticsService.getAllUserCount()
 	}
 	@Auth([Role.ADMIN, Role.MANAGER])
 	@Get('/products-count')
